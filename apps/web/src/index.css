@@ -19,12 +19,14 @@ body,
 }
 
 html {
+  overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 body {
   margin: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   background: var(--color-page);
   color: var(--color-ink);

@@ -15,11 +15,11 @@ export function DirectoryPage() {
   } = useDirectory();
 
   return (
-    <div className="space-y-3 sm:space-y-5">
+    <div className="min-w-0 space-y-3 sm:space-y-5">
       <FilterBar />
       <CategoryBanner />
 
-      <section>
+      <section className="min-w-0">
         <div className="mb-2.5 flex items-center justify-between gap-2 sm:mb-3">
           <div className="min-w-0">
             <h2 className="text-base font-bold sm:text-lg">Directory</h2>
@@ -33,7 +33,7 @@ export function DirectoryPage() {
             <select
               value={sortKey}
               onChange={(event) => setSortKey(event.target.value as "name" | "city")}
-              className="bg-transparent font-semibold text-ink outline-none"
+              className="max-w-[5.5rem] bg-transparent font-semibold text-ink outline-none"
             >
               <option value="name">Name</option>
               <option value="city">City</option>
@@ -47,7 +47,7 @@ export function DirectoryPage() {
             <p className="mt-1 text-sm text-muted">Try changing filters or search.</p>
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             {visibleListings.map((listing) => (
               <ContactCard
                 key={listing.id}

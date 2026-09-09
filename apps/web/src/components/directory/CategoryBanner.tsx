@@ -5,7 +5,7 @@ export function CategoryBanner() {
 
   return (
     <section
-      className="relative overflow-hidden rounded-xl p-3.5 text-white sm:rounded-2xl sm:p-6"
+      className="relative min-w-0 overflow-hidden rounded-xl p-3.5 text-white sm:rounded-2xl sm:p-6"
       style={{ backgroundImage: `linear-gradient(135deg, ${activeBanner.from}, ${activeBanner.to})` }}
     >
       <div className="pointer-events-none absolute -right-8 -top-8 hidden h-36 w-36 rounded-full bg-white/10 sm:block" />

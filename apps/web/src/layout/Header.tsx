@@ -9,10 +9,11 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6">
-        <Link to="/" className="flex shrink-0 items-center gap-2.5 sm:gap-3">
-          <BrandMark size="md" />
-          <div className="leading-tight">
-            <p className="text-lg font-bold tracking-wide text-ink sm:text-xl">Buzaao</p>
+        <Link to="/" className="flex min-w-0 shrink items-center gap-2 sm:gap-3">
+          <BrandMark size="sm" className="sm:hidden" />
+          <BrandMark size="md" className="hidden sm:block" />
+          <div className="min-w-0 leading-tight">
+            <p className="truncate text-base font-bold tracking-wide text-ink sm:text-xl">Buzaao</p>
             <p className="hidden text-[10px] font-medium uppercase tracking-[0.14em] text-muted sm:block">
               Because We Can
             </p>

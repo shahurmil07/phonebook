@@ -3,9 +3,9 @@ import { Header } from "./Header";
 
 export function UserShell() {
   return (
-    <div className="min-h-screen bg-page">
+    <div className="min-h-screen min-w-0 overflow-x-hidden bg-page">
       <Header />
-      <main className="mx-auto max-w-6xl px-3 py-3 sm:px-6 sm:py-6">
+      <main className="mx-auto min-w-0 max-w-6xl px-3 py-3 sm:px-6 sm:py-6">
         <Outlet />
       </main>
       <footer className="border-t border-line bg-white">
