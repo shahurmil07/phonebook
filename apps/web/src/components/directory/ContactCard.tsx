@@ -18,9 +18,17 @@ export function ContactCard({ listing, city, nature, category }: ContactCardProp
     <article className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-line sm:p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-base font-bold text-white">
-            {getInitials(company)}
-          </div>
+          {listing.photo ? (
+            <img
+              src={listing.photo}
+              alt={company}
+              className="h-14 w-14 shrink-0 rounded-full object-cover ring-2 ring-brand/10"
+            />
+          ) : (
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-base font-bold text-white">
+              {getInitials(company)}
+            </div>
+          )}
           <div className="min-w-0">
             <h3 className="truncate text-base font-bold text-ink">{company}</h3>
             {person ? <p className="truncate text-sm text-muted">{person}</p> : null}

@@ -33,6 +33,7 @@ export type Listing = {
   phone: string;
   email?: string;
   company?: string;
+  photo?: string;
   cityId: string;
   natureId: string;
   categoryId: string;
