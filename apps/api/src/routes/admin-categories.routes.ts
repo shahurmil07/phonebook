@@ -50,6 +50,43 @@ adminCategoriesRouter.post("/", async (request, response, next) => {
   }
 });
 
+adminCategoriesRouter.patch("/:id", async (request, response, next) => {
+  try {
+    const name = requireString(request.body?.name, "Name");
+    const id = request.params.id;
+
+    const current = await prisma.category.findUnique({ where: { id } });
+    if (!current) {
+      throw new AppError(404, "Category not found");
+    }
+
+    const existing = await prisma.category.findFirst({
+      where: {
+        name: { equals: name, mode: "insensitive" },
+        NOT: { id },
+      },
+    });
+    if (existing) {
+      throw new AppError(409, "Category already exists");
+    }
+
+    const category = await prisma.category.update({
+      where: { id },
+      data: { name },
+      include: { _count: { select: { listings: true } } },
+    });
+
+    response.json({
+      id: category.id,
+      name: category.name,
+      listingsCount: category._count.listings,
+      createdAt: category.createdAt.toISOString(),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 adminCategoriesRouter.delete("/:id", async (request, response, next) => {
   try {
     const count = await prisma.listing.count({ where: { categoryId: request.params.id } });

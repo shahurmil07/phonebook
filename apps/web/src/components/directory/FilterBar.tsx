@@ -1,6 +1,11 @@
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { useDirectory } from "../../state/directory-context";
+import {
+  ThemedSelect,
+  findSelectOption,
+  toSelectOptions,
+} from "../ui/ThemedSelect";
 
 export function FilterBar() {
   const {
@@ -210,49 +215,49 @@ function FilterFields({
   setSearch: (value: string) => void;
   includeSearch: boolean;
 }) {
+  const cityOptions = useMemo(() => toSelectOptions(cities, "All cities"), [cities]);
+  const natureOptions = useMemo(() => toSelectOptions(natures, "All natures"), [natures]);
+  const categoryOptions = useMemo(
+    () => toSelectOptions(categories, "All categories"),
+    [categories],
+  );
+
   return (
     <>
       <FilterField label="City">
-        <select value={cityId} onChange={(event) => setCityId(event.target.value)} className="field-control" aria-label="City">
-          <option value="">All cities</option>
-          {cities.map((city) => (
-            <option key={city.id} value={city.id}>
-              {city.name}
-            </option>
-          ))}
-        </select>
+        <ThemedSelect
+          inputId="filter-city"
+          aria-label="City"
+          options={cityOptions}
+          value={findSelectOption(cityOptions, cityId)}
+          onChange={(option) => setCityId(option?.value ?? "")}
+          placeholder="All cities"
+          isClearable={Boolean(cityId)}
+        />
       </FilterField>
 
       <FilterField label="Nature of Business">
-        <select
-          value={natureId}
-          onChange={(event) => setNatureId(event.target.value)}
-          className="field-control"
+        <ThemedSelect
+          inputId="filter-nature"
           aria-label="Nature of Business"
-        >
-          <option value="">All natures</option>
-          {natures.map((nature) => (
-            <option key={nature.id} value={nature.id}>
-              {nature.name}
-            </option>
-          ))}
-        </select>
+          options={natureOptions}
+          value={findSelectOption(natureOptions, natureId)}
+          onChange={(option) => setNatureId(option?.value ?? "")}
+          placeholder="All natures"
+          isClearable={Boolean(natureId)}
+        />
       </FilterField>
 
       <FilterField label="Category">
-        <select
-          value={categoryId}
-          onChange={(event) => setCategoryId(event.target.value)}
-          className="field-control"
+        <ThemedSelect
+          inputId="filter-category"
           aria-label="Category"
-        >
-          <option value="">All categories</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
+          options={categoryOptions}
+          value={findSelectOption(categoryOptions, categoryId)}
+          onChange={(option) => setCategoryId(option?.value ?? "")}
+          placeholder="All categories"
+          isClearable={Boolean(categoryId)}
+        />
       </FilterField>
 
       {includeSearch ? (

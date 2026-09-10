@@ -47,6 +47,26 @@ textarea {
   font: inherit;
 }
 
+button,
+a,
+label[for],
+summary,
+select,
+[role="button"],
+[type="button"],
+[type="submit"],
+[type="reset"],
+[type="file"],
+.cursor-pointer {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"],
+[disabled] {
+  cursor: not-allowed;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

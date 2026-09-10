@@ -3,11 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { adminApi, mediaUrl, type AdminBanner } from "../../lib/api";
 import { useDirectory } from "../../state/directory-context";
 
-function pickBanner(banners: AdminBanner[], cityId: string, categoryId: string): AdminBanner | null {
-  const defaults = banners.filter(
-    (banner) => banner.categoryIds.length === 0 && banner.cityIds.length === 0,
-  );
+const LOCAL_DEFAULT_IMAGE = "/default-banner.svg";
 
+function pickBanner(banners: AdminBanner[], cityId: string, categoryId: string): AdminBanner | null {
   if (cityId && categoryId) {
     const both = banners.find(
       (banner) => banner.categoryIds.includes(categoryId) && banner.cityIds.includes(cityId),
@@ -31,7 +29,13 @@ function pickBanner(banners: AdminBanner[], cityId: string, categoryId: string):
     }
   }
 
-  return defaults[0] ?? null;
+  const defaults = banners.filter(
+    (banner) => banner.categoryIds.length === 0 && banner.cityIds.length === 0,
+  );
+  return (
+    defaults.find((banner) => !/seed-(default|ext|amd|alm-del)\.png$/i.test(banner.imageUrl)) ??
+    null
+  );
 }
 
 export function CategoryBanner() {
@@ -46,20 +50,20 @@ export function CategoryBanner() {
     [bannersQuery.data, cityId, categoryId],
   );
 
-  if (bannersQuery.isLoading) {
-    return <div className="h-28 animate-pulse rounded-xl bg-white sm:h-36 sm:rounded-2xl" />;
-  }
+  const imageSrc = activeBanner ? mediaUrl(activeBanner.imageUrl) : LOCAL_DEFAULT_IMAGE;
 
-  if (!activeBanner) {
-    return null;
+  if (bannersQuery.isLoading) {
+    return (
+      <div className="relative aspect-[3/1] min-h-28 animate-pulse overflow-hidden rounded-xl bg-white sm:min-h-36 sm:rounded-2xl" />
+    );
   }
 
   return (
-    <section className="relative min-w-0 overflow-hidden rounded-xl sm:rounded-2xl">
+    <section className="relative aspect-[3/1] min-h-28 min-w-0 overflow-hidden rounded-xl bg-brand sm:min-h-36 sm:rounded-2xl">
       <img
-        src={mediaUrl(activeBanner.imageUrl)}
+        src={imageSrc}
         alt="Promotional banner"
-        className="h-28 w-full object-cover sm:h-40"
+        className="absolute inset-0 h-full w-full object-cover object-center"
       />
     </section>
   );

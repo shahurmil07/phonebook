@@ -15,12 +15,12 @@ const cities = [
 ];
 
 const natures = [
-  { id: "mfr", name: "Manufacturer" },
-  { id: "ctr", name: "Contractor" },
-  { id: "cns", name: "Consultant" },
-  { id: "svc", name: "Service Provider" },
-  { id: "trd", name: "Trader" },
-  { id: "sup", name: "Supplier" },
+  { id: "mfr", name: "Manufacture" },
+  { id: "spd", name: "Supplier / Dealer" },
+  { id: "fctr", name: "Fire Contractor" },
+  { id: "fcns", name: "Fire Consultant / Auditor" },
+  { id: "fsft", name: "Fire Safety Professionals" },
+  { id: "fwld", name: "Fire welders/ Fabricators" },
 ];
 
 const categories = [
@@ -54,7 +54,7 @@ const baseListings = [
     email: "amit@dfa.in",
     photo: "/avatars/user-2.jpg",
     cityId: "del",
-    natureId: "ctr",
+    natureId: "fctr",
     categoryId: "alm",
     service: "Addressable fire alarm installation",
     status: ListingStatus.APPROVED,
@@ -66,7 +66,7 @@ const baseListings = [
     phone: "9988776655",
     photo: "/avatars/user-3.jpg",
     cityId: "mum",
-    natureId: "ctr",
+    natureId: "fctr",
     categoryId: "hyd",
     service: "Wet riser & hydrant system contracting",
     status: ListingStatus.APPROVED,
@@ -78,7 +78,7 @@ const baseListings = [
     phone: "9090901234",
     photo: "/avatars/user-4.jpg",
     cityId: "blr",
-    natureId: "svc",
+    natureId: "fsft",
     categoryId: "spr",
     service: "Sprinkler system AMC & retrofit",
     status: ListingStatus.APPROVED,
@@ -89,7 +89,7 @@ const baseListings = [
     company: "Jaipur Safety Consultants",
     phone: "9811122233",
     cityId: "jai",
-    natureId: "cns",
+    natureId: "fcns",
     categoryId: "aud",
     service: "Fire audit & NOC consulting",
     status: ListingStatus.APPROVED,
@@ -100,7 +100,7 @@ const baseListings = [
     company: "Mumbai Safety Gear",
     phone: "9765432109",
     cityId: "mum",
-    natureId: "trd",
+    natureId: "spd",
     categoryId: "sft",
     service: "PPE, helmets & safety equipment trading",
     status: ListingStatus.APPROVED,
@@ -111,7 +111,7 @@ const baseListings = [
     company: "Hyderabad AMC Care",
     phone: "9000011122",
     cityId: "hyd",
-    natureId: "svc",
+    natureId: "fsft",
     categoryId: "amc",
     service: "Annual maintenance for fire systems",
     status: ListingStatus.APPROVED,
@@ -122,7 +122,7 @@ const baseListings = [
     company: "Pune Extinguishers Supply",
     phone: "9887766554",
     cityId: "pun",
-    natureId: "sup",
+    natureId: "spd",
     categoryId: "ext",
     service: "Bulk extinguisher supply & refill",
     status: ListingStatus.APPROVED,
@@ -133,7 +133,7 @@ const baseListings = [
     company: "Chennai Fire Consultants",
     phone: "9776655443",
     cityId: "chn",
-    natureId: "cns",
+    natureId: "fcns",
     categoryId: "aud",
     service: "Industrial fire risk assessment",
     status: ListingStatus.PENDING,
@@ -144,7 +144,7 @@ const baseListings = [
     company: "Ahmedabad Hydrant Works",
     phone: "9665544332",
     cityId: "amd",
-    natureId: "ctr",
+    natureId: "fwld",
     categoryId: "hyd",
     service: "Underground hydrant pipeline works",
     status: ListingStatus.PENDING,
@@ -226,27 +226,27 @@ async function main() {
 
   await prisma.banner.create({
     data: {
-      imageUrl: "/uploads/banners/seed-default.png",
+      imageUrl: "/uploads/banners/seed-default.svg",
     },
   });
 
   await prisma.banner.create({
     data: {
-      imageUrl: "/uploads/banners/seed-ext.png",
+      imageUrl: "/uploads/banners/seed-ext.svg",
       categories: { create: [{ categoryId: "ext" }] },
     },
   });
 
   await prisma.banner.create({
     data: {
-      imageUrl: "/uploads/banners/seed-amd.png",
+      imageUrl: "/uploads/banners/seed-amd.svg",
       cities: { create: [{ cityId: "amd" }] },
     },
   });
 
   await prisma.banner.create({
     data: {
-      imageUrl: "/uploads/banners/seed-alm-del.png",
+      imageUrl: "/uploads/banners/seed-alm-del.svg",
       categories: { create: [{ categoryId: "alm" }] },
       cities: { create: [{ cityId: "del" }] },
     },

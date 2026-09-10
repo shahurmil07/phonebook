@@ -1,7 +1,14 @@
+import { useMemo } from "react";
 import { CategoryBanner } from "../components/directory/CategoryBanner";
 import { ContactCard } from "../components/directory/ContactCard";
 import { FilterBar } from "../components/directory/FilterBar";
+import { ThemedSelect, findSelectOption, type SelectOption } from "../components/ui/ThemedSelect";
 import { useDirectory } from "../state/directory-context";
+
+const SORT_OPTIONS: SelectOption[] = [
+  { value: "name", label: "Name" },
+  { value: "city", label: "City" },
+];
 
 export function DirectoryPage() {
   const {
@@ -13,6 +20,8 @@ export function DirectoryPage() {
     setSortKey,
     activeFilterCount,
   } = useDirectory();
+
+  const sortValue = useMemo(() => findSelectOption(SORT_OPTIONS, sortKey), [sortKey]);
 
   return (
     <div className="min-w-0 space-y-3 sm:space-y-5">
@@ -28,17 +37,17 @@ export function DirectoryPage() {
               {activeFilterCount > 0 ? " found" : ""}
             </p>
           </div>
-          <label className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-xs sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2 sm:text-sm">
-            <span className="text-muted">Sort</span>
-            <select
-              value={sortKey}
-              onChange={(event) => setSortKey(event.target.value as "name" | "city")}
-              className="max-w-[5.5rem] bg-transparent font-semibold text-ink outline-none"
-            >
-              <option value="name">Name</option>
-              <option value="city">City</option>
-            </select>
-          </label>
+          <div className="w-[8.5rem] shrink-0 sm:w-40">
+            <ThemedSelect
+              inputId="directory-sort"
+              aria-label="Sort listings"
+              options={SORT_OPTIONS}
+              value={sortValue}
+              onChange={(option) => setSortKey((option?.value as "name" | "city") ?? "name")}
+              isSearchable={false}
+              isClearable={false}
+            />
+          </div>
         </div>
 
         {visibleListings.length === 0 ? (

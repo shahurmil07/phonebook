@@ -6,6 +6,7 @@ import { AddListingPage } from "./pages/AddListingPage";
 import { DirectoryPage } from "./pages/DirectoryPage";
 import { RemindersPage, ReportsPage, SettingsPage } from "./pages/UtilityPages";
 import { AdminBannersPage } from "./pages/admin/AdminBannersPage";
+import { AdminCategoriesPage } from "./pages/admin/AdminCategoriesPage";
 import { AdminListingsPage } from "./pages/admin/AdminListingsPage";
 import { AdminLoginPage } from "./pages/admin/AdminLoginPage";
 import { AuthProvider } from "./state/auth-context";
@@ -38,6 +39,7 @@ export function App() {
               <Route path="/admin/login" element={<AdminLoginPage />} />
               <Route path="/admin" element={<AdminShell />}>
                 <Route index element={<AdminListingsPage />} />
+                <Route path="categories" element={<AdminCategoriesPage />} />
                 <Route path="banners" element={<AdminBannersPage />} />
                 <Route path="*" element={<Navigate to="/admin" replace />} />
               </Route>

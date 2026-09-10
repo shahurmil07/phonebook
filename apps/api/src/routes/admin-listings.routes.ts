@@ -98,6 +98,115 @@ adminListingsRouter.get("/", async (request, response, next) => {
   }
 });
 
+function normalizeKey(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function parseImportStatus(value: unknown): ListingStatus {
+  if (!value || typeof value !== "string" || !value.trim()) {
+    return ListingStatus.APPROVED;
+  }
+  const normalized = value.trim().toUpperCase();
+  if (normalized === "PENDING" || normalized === "APPROVED" || normalized === "REJECTED") {
+    return normalized as ListingStatus;
+  }
+  throw new AppError(400, `Invalid status "${value}"`);
+}
+
+adminListingsRouter.post("/import", async (request, response, next) => {
+  try {
+    const rows = Array.isArray(request.body?.rows) ? request.body.rows : null;
+    if (!rows || rows.length === 0) {
+      throw new AppError(400, "CSV has no data rows");
+    }
+    if (rows.length > 500) {
+      throw new AppError(400, "Import limit is 500 rows at a time");
+    }
+
+    const [cities, natures, categories] = await Promise.all([
+      prisma.city.findMany(),
+      prisma.nature.findMany(),
+      prisma.category.findMany(),
+    ]);
+
+    const cityByKey = new Map(cities.flatMap((item) => [[normalizeKey(item.id), item.id], [normalizeKey(item.name), item.id]]));
+    const natureByKey = new Map(
+      natures.flatMap((item) => [[normalizeKey(item.id), item.id], [normalizeKey(item.name), item.id]]),
+    );
+    const categoryByKey = new Map(
+      categories.flatMap((item) => [[normalizeKey(item.id), item.id], [normalizeKey(item.name), item.id]]),
+    );
+
+    const created: string[] = [];
+    const errors: Array<{ row: number; message: string }> = [];
+
+    for (let index = 0; index < rows.length; index += 1) {
+      const row = rows[index] as Record<string, unknown>;
+      const rowNumber = index + 2;
+
+      try {
+        const name = requireString(row.name ?? row.Name, "Name");
+        const phone = requireString(row.phone ?? row.Phone, "Phone");
+        validatePhone(phone);
+        const email = optionalString(row.email ?? row.Email, "Email");
+        validateEmail(email);
+        const company = optionalString(row.company ?? row.Company, "Company");
+        const service = requireString(row.service ?? row.Service, "Service");
+        const cityRaw = requireString(row.city ?? row.City ?? row.cityId ?? row.CityId, "City");
+        const natureRaw = requireString(
+          row.nature ?? row.Nature ?? row.natureId ?? row.NatureId,
+          "Nature",
+        );
+        const categoryRaw = requireString(
+          row.category ?? row.Category ?? row.categoryId ?? row.CategoryId,
+          "Category",
+        );
+
+        const cityId = cityByKey.get(normalizeKey(cityRaw));
+        const natureId = natureByKey.get(normalizeKey(natureRaw));
+        const categoryId = categoryByKey.get(normalizeKey(categoryRaw));
+
+        if (!cityId) {
+          throw new AppError(400, `Unknown city "${cityRaw}"`);
+        }
+        if (!natureId) {
+          throw new AppError(400, `Unknown nature "${natureRaw}"`);
+        }
+        if (!categoryId) {
+          throw new AppError(400, `Unknown category "${categoryRaw}"`);
+        }
+
+        const status = parseImportStatus(row.status ?? row.Status);
+        const listing = await prisma.listing.create({
+          data: {
+            name,
+            phone,
+            email,
+            company,
+            service,
+            cityId,
+            natureId,
+            categoryId,
+            status,
+          },
+        });
+        created.push(listing.id);
+      } catch (error) {
+        const message = error instanceof AppError ? error.message : "Failed to import row";
+        errors.push({ row: rowNumber, message });
+      }
+    }
+
+    response.json({
+      imported: created.length,
+      failed: errors.length,
+      errors: errors.slice(0, 20),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 adminListingsRouter.patch("/:id/status", async (request, response, next) => {
   try {
     const status = parseStatus(request.body?.status);

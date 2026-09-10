@@ -166,6 +166,16 @@ export const adminApi = {
   deleteListing: (id: string) =>
     apiRequest<void>(`/api/admin/listings/${id}`, { method: "DELETE" }, true),
 
+  importListingsCsv: (rows: Array<Record<string, string>>) =>
+    apiRequest<{ imported: number; failed: number; errors: Array<{ row: number; message: string }> }>(
+      "/api/admin/listings/import",
+      {
+        method: "POST",
+        body: JSON.stringify({ rows }),
+      },
+      true,
+    ),
+
   getCategories: () => apiRequest<AdminCategory[]>("/api/admin/categories", {}, true),
 
   createCategory: (name: string) =>
@@ -173,6 +183,16 @@ export const adminApi = {
       "/api/admin/categories",
       {
         method: "POST",
+        body: JSON.stringify({ name }),
+      },
+      true,
+    ),
+
+  updateCategory: (id: string, name: string) =>
+    apiRequest<AdminCategory>(
+      `/api/admin/categories/${id}`,
+      {
+        method: "PATCH",
         body: JSON.stringify({ name }),
       },
       true,

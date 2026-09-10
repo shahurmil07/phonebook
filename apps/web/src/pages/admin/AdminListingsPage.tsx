@@ -5,6 +5,7 @@ import {
   Building2,
   Check,
   ChevronRight,
+  Download,
   Mail,
   MapPin,
   Pencil,
@@ -12,10 +13,13 @@ import {
   Search,
   Tag,
   Trash2,
+  Upload,
   X,
 } from "lucide-react";
 import { cn, getInitials } from "../../lib/cn";
 import { adminApi, type AdminListing, type ListingStatus } from "../../lib/api";
+import { LISTINGS_CSV_TEMPLATE, parseCsv } from "../../lib/csv";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 
 const STATUS_TABS: Array<{ id: "all" | ListingStatus; label: string }> = [
   { id: "all", label: "All" },
@@ -31,6 +35,8 @@ export function AdminListingsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState<AdminListing | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<AdminListing | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -94,6 +100,7 @@ export function AdminListingsPage() {
       if (selectedId === id) {
         setSelectedId(null);
       }
+      setRemoveTarget(null);
       void queryClient.invalidateQueries({ queryKey: ["admin-listings"] });
     },
   });
@@ -101,9 +108,19 @@ export function AdminListingsPage() {
   return (
     <section className="space-y-4">
       <div className="sticky top-0 z-10 space-y-3 bg-page pb-3 pt-0.5">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink">Register Phonebook</h1>
-          <p className="mt-1 text-sm text-muted">Click a registration to view full details</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-ink">Register Phonebook</h1>
+            <p className="mt-1 text-sm text-muted">Click a registration to view full details</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setImportOpen(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark"
+          >
+            <Upload className="h-4 w-4" />
+            Import CSV
+          </button>
         </div>
 
         <div className="rounded-2xl border border-line bg-white p-3 shadow-sm sm:p-4">
@@ -221,11 +238,7 @@ export function AdminListingsPage() {
           onApprove={() => statusMutation.mutate({ id: selected.id, nextStatus: "approved" })}
           onReject={() => statusMutation.mutate({ id: selected.id, nextStatus: "rejected" })}
           onEdit={() => setEditing(selected)}
-          onRemove={() => {
-            if (window.confirm("Remove this listing?")) {
-              deleteMutation.mutate(selected.id);
-            }
-          }}
+          onRemove={() => setRemoveTarget(selected)}
         />
       ) : null}
 
@@ -239,6 +252,34 @@ export function AdminListingsPage() {
           }}
         />
       ) : null}
+
+      {importOpen ? (
+        <ImportCsvModal
+          onClose={() => setImportOpen(false)}
+          onImported={() => {
+            setImportOpen(false);
+            void queryClient.invalidateQueries({ queryKey: ["admin-listings"] });
+          }}
+        />
+      ) : null}
+
+      <ConfirmDialog
+        open={Boolean(removeTarget)}
+        title="Remove listing?"
+        description={
+          removeTarget
+            ? `This will permanently remove “${removeTarget.company || removeTarget.name}” from the phonebook.`
+            : undefined
+        }
+        confirmLabel="Remove"
+        busy={deleteMutation.isPending}
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={() => {
+          if (removeTarget) {
+            deleteMutation.mutate(removeTarget.id);
+          }
+        }}
+      />
     </section>
   );
 }
@@ -508,6 +549,151 @@ function EditListingModal({
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function ImportCsvModal({ onClose, onImported }: { onClose: () => void; onImported: () => void }) {
+  const queryClient = useQueryClient();
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [fileName, setFileName] = useState("");
+  const [rows, setRows] = useState<Array<Record<string, string>>>([]);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<{ imported: number; failed: number; errors: Array<{ row: number; message: string }> } | null>(
+    null,
+  );
+
+  const importMutation = useMutation({
+    mutationFn: () => adminApi.importListingsCsv(rows),
+    onSuccess: (data) => {
+      setResult(data);
+      if (data.imported > 0 && data.failed === 0) {
+        onImported();
+        return;
+      }
+      if (data.imported > 0) {
+        // Keep modal open to show row errors, but refresh list.
+        void queryClient.invalidateQueries({ queryKey: ["admin-listings"] });
+      }
+    },
+    onError: (err: Error) => setError(err.message),
+  });
+
+  function downloadTemplate() {
+    const blob = new Blob([LISTINGS_CSV_TEMPLATE], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "phonebook-listings-template.csv";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleFile(file: File | null) {
+    setError("");
+    setResult(null);
+    setRows([]);
+    setFileName("");
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const parsed = parseCsv(text);
+      if (parsed.length === 0) {
+        setError("No valid data rows found in CSV");
+        return;
+      }
+      setFileName(file.name);
+      setRows(parsed);
+    } catch {
+      setError("Could not read CSV file");
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
+      <button type="button" className="absolute inset-0" aria-label="Close import" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-lg rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-ink">Import CSV</h2>
+            <p className="mt-1 text-sm text-muted">
+              Columns: name, phone, email, company, city, nature, category, service, status
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-page text-muted"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-4 grid gap-3">
+          <button
+            type="button"
+            onClick={downloadTemplate}
+            className="inline-flex w-fit items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm font-semibold text-ink hover:bg-page"
+          >
+            <Download className="h-4 w-4" />
+            Download template
+          </button>
+
+          <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-line bg-page px-4 py-8 text-center hover:border-brand/40">
+            <Upload className="h-5 w-5 text-muted" />
+            <span className="text-sm font-semibold text-ink">{fileName || "Choose CSV file"}</span>
+            <span className="text-xs text-muted">
+              {rows.length > 0 ? `${rows.length} row${rows.length === 1 ? "" : "s"} ready` : "Max 500 rows"}
+            </span>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="sr-only"
+              onChange={(event) => void handleFile(event.target.files?.[0] ?? null)}
+            />
+          </label>
+
+          {error ? <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-600">{error}</p> : null}
+
+          {result ? (
+            <div className="rounded-xl bg-page px-3 py-2 text-sm text-ink">
+              <p className="font-semibold">
+                Imported {result.imported}
+                {result.failed > 0 ? ` · Failed ${result.failed}` : ""}
+              </p>
+              {result.errors.length > 0 ? (
+                <ul className="mt-2 space-y-1 text-xs text-muted">
+                  {result.errors.map((item) => (
+                    <li key={`${item.row}-${item.message}`}>
+                      Row {item.row}: {item.message}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={rows.length === 0 || importMutation.isPending}
+              onClick={() => importMutation.mutate()}
+              className="flex-1 rounded-xl bg-brand py-2.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-60"
+            >
+              {importMutation.isPending ? "Importing..." : "Import listings"}
+            </button>
+            <button type="button" onClick={onClose} className="flex-1 rounded-xl bg-page py-2.5 text-sm font-semibold">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,33 +1,14 @@
 import { type FormEvent, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ImagePlus, MapPin, Tag, Trash2, Upload } from "lucide-react";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
+import {
+  ThemedMultiSelect,
+  findSelectOptions,
+  multiValuesToIds,
+  toSelectOptions,
+} from "../../components/ui/ThemedSelect";
 import { adminApi, mediaUrl, type AdminBanner } from "../../lib/api";
-import { cn } from "../../lib/cn";
-
-function ChipToggle({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "rounded-lg border px-2.5 py-1.5 text-left text-sm font-medium transition",
-        active
-          ? "border-brand bg-brand text-white"
-          : "border-line bg-white text-ink hover:border-brand/40 hover:bg-page",
-      )}
-    >
-      {label}
-    </button>
-  );
-}
 
 function TargetChips({ banner }: { banner: AdminBanner }) {
   if (banner.categories.length === 0 && banner.cities.length === 0) {
@@ -69,6 +50,7 @@ export function AdminBannersPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<AdminBanner | null>(null);
 
   const bannersQuery = useQuery({
     queryKey: ["admin-banners"],
@@ -84,6 +66,12 @@ export function AdminBannersPage() {
     queryKey: ["taxonomy-cities"],
     queryFn: adminApi.getCities,
   });
+
+  const categoryOptions = useMemo(
+    () => toSelectOptions(categoriesQuery.data ?? []),
+    [categoriesQuery.data],
+  );
+  const cityOptions = useMemo(() => toSelectOptions(citiesQuery.data ?? []), [citiesQuery.data]);
 
   const createMutation = useMutation({
     mutationFn: () => {
@@ -111,6 +99,7 @@ export function AdminBannersPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => adminApi.deleteBanner(id),
     onSuccess: () => {
+      setDeleteTarget(null);
       void queryClient.invalidateQueries({ queryKey: ["admin-banners"] });
       void queryClient.invalidateQueries({ queryKey: ["public-banners"] });
     },
@@ -124,10 +113,6 @@ export function AdminBannersPage() {
       return;
     }
     createMutation.mutate();
-  }
-
-  function toggle(list: string[], id: string, setter: (next: string[]) => void) {
-    setter(list.includes(id) ? list.filter((item) => item !== id) : [...list, id]);
   }
 
   const assignmentHint = useMemo(() => {
@@ -186,45 +171,35 @@ export function AdminBannersPage() {
 
           <div className="grid gap-4">
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-line bg-page/60 p-3">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink">
-                    <Tag className="h-3.5 w-3.5 text-muted" />
-                    Categories
-                  </p>
-                  <span className="text-[11px] text-muted">{selectedCategories.length} selected</span>
-                </div>
-                <div className="grid max-h-36 grid-cols-1 gap-1.5 overflow-y-auto pr-1">
-                  {(categoriesQuery.data ?? []).map((category) => (
-                    <ChipToggle
-                      key={category.id}
-                      active={selectedCategories.includes(category.id)}
-                      label={category.name}
-                      onClick={() => toggle(selectedCategories, category.id, setSelectedCategories)}
-                    />
-                  ))}
-                </div>
-              </div>
+              <label className="grid gap-1.5">
+                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink">
+                  <Tag className="h-3.5 w-3.5 text-muted" />
+                  Categories
+                </span>
+                <ThemedMultiSelect
+                  inputId="banner-categories"
+                  options={categoryOptions}
+                  value={findSelectOptions(categoryOptions, selectedCategories)}
+                  onChange={(values) => setSelectedCategories(multiValuesToIds(values))}
+                  placeholder="Select categories"
+                  isClearable
+                />
+              </label>
 
-              <div className="rounded-xl border border-line bg-page/60 p-3">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink">
-                    <MapPin className="h-3.5 w-3.5 text-muted" />
-                    Cities
-                  </p>
-                  <span className="text-[11px] text-muted">{selectedCities.length} selected</span>
-                </div>
-                <div className="grid max-h-36 grid-cols-1 gap-1.5 overflow-y-auto pr-1">
-                  {(citiesQuery.data ?? []).map((city) => (
-                    <ChipToggle
-                      key={city.id}
-                      active={selectedCities.includes(city.id)}
-                      label={city.name}
-                      onClick={() => toggle(selectedCities, city.id, setSelectedCities)}
-                    />
-                  ))}
-                </div>
-              </div>
+              <label className="grid gap-1.5">
+                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink">
+                  <MapPin className="h-3.5 w-3.5 text-muted" />
+                  Cities
+                </span>
+                <ThemedMultiSelect
+                  inputId="banner-cities"
+                  options={cityOptions}
+                  value={findSelectOptions(cityOptions, selectedCities)}
+                  onChange={(values) => setSelectedCities(multiValuesToIds(values))}
+                  placeholder="Select cities"
+                  isClearable
+                />
+              </label>
             </div>
 
             <p className="text-xs text-muted">{assignmentHint}</p>
@@ -293,11 +268,7 @@ export function AdminBannersPage() {
               <button
                 type="button"
                 title="Remove banner"
-                onClick={() => {
-                  if (window.confirm("Remove this banner?")) {
-                    deleteMutation.mutate(banner.id);
-                  }
-                }}
+                onClick={() => setDeleteTarget(banner)}
                 className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-red-50 hover:text-red-600"
               >
                 <Trash2 className="h-4 w-4" />
@@ -306,6 +277,20 @@ export function AdminBannersPage() {
           ))}
         </ul>
       </div>
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Remove banner?"
+        description="This banner will be deleted and no longer shown on the user directory."
+        confirmLabel="Remove"
+        busy={deleteMutation.isPending}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteMutation.mutate(deleteTarget.id);
+          }
+        }}
+      />
     </section>
   );
 }
