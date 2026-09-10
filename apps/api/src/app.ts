@@ -9,21 +9,38 @@ import { contactsRouter } from "./routes/contacts.routes.js";
 import { taxonomyRouter } from "./routes/taxonomy.routes.js";
 import { uploadsRoot } from "./lib/upload.js";
 
-function corsOrigins(): string[] | boolean {
-  const raw = process.env.CORS_ORIGINS?.trim();
-  if (!raw) {
-    return ["http://localhost:5173", "http://localhost:5174"];
-  }
-  if (raw === "*") {
-    return true;
-  }
-  return raw.split(",").map((origin) => origin.trim()).filter(Boolean);
+function allowedOrigins(): string[] {
+  const defaults = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "https://phonebook-web-delta.vercel.app",
+  ];
+
+  const fromEnv =
+    process.env.CORS_ORIGINS?.split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean) ?? [];
+
+  return [...new Set([...defaults, ...fromEnv])];
 }
 
 export function createApp(): Express {
   const app = express();
+  const origins = allowedOrigins();
 
-  app.use(cors({ origin: corsOrigins() }));
+  app.use(
+    cors({
+      origin(origin, callback) {
+        if (!origin || origins.includes(origin) || process.env.CORS_ORIGINS?.trim() === "*") {
+          callback(null, true);
+          return;
+        }
+        callback(null, false);
+      },
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    }),
+  );
   app.use(express.json());
   app.use("/uploads", express.static(uploadsRoot));
 
