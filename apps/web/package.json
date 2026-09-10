@@ -13,6 +13,7 @@
   "dependencies": {
     "@phonebook/shared": "*",
     "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/react-query": "^5.102.8",
     "lucide-react": "^1.43.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

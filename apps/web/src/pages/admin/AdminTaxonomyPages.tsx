@@ -17,7 +17,7 @@ export function AdminCategoriesPage() {
 
   return (
     <TaxonomyManager
-      title="Categories"
+      title="Category"
       placeholder="New category"
       items={categories}
       name={name}

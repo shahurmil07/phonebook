@@ -43,18 +43,18 @@ export function FilterBar() {
       {/* Mobile: compact search + filter button */}
       <div className="flex gap-2 md:hidden">
         <label className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search directory..."
-            className="field-control rounded-xl pl-9 pr-9"
+            className="field-control rounded-xl py-2.5 pl-10 pr-10"
           />
           {search ? (
             <button
               type="button"
               onClick={() => setSearch("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted"
               aria-label="Clear search"
             >
               <X className="h-4 w-4" />
@@ -258,18 +258,18 @@ function FilterFields({
       {includeSearch ? (
         <FilterField label="Search">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Name, company, or phone"
-              className="field-control pl-9 pr-9"
+              className="field-control pl-10 pr-10"
             />
             {search ? (
               <button
                 type="button"
                 onClick={() => setSearch("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
                 aria-label="Clear search"
               >
                 <X className="h-4 w-4" />

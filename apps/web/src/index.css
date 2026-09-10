@@ -56,19 +56,21 @@ textarea {
   scrollbar-width: none;
 }
 
-.field-control {
-  width: 100%;
-  border: 1px solid var(--color-line);
-  border-radius: 0.5rem;
-  background: #fff;
-  padding: 0.625rem 0.75rem;
-  font-size: 0.875rem;
-  color: var(--color-ink);
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
+@layer components {
+  .field-control {
+    width: 100%;
+    border: 1px solid var(--color-line);
+    border-radius: 0.5rem;
+    background: #fff;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--color-ink);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
 
-.field-control:focus {
-  border-color: var(--color-brand);
-  box-shadow: 0 0 0 3px rgb(225 29 46 / 0.12);
+  .field-control:focus {
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 3px rgb(225 29 46 / 0.12);
+  }
 }
