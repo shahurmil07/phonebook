@@ -5,16 +5,28 @@ import multer from "multer";
 import { AppError } from "../errors/app-error.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const uploadsRoot = path.resolve(__dirname, "../../uploads");
+
+// Vercel filesystem is read-only except /tmp
+export const uploadsRoot = process.env.VERCEL
+  ? path.join("/tmp", "phonebook-uploads")
+  : path.resolve(__dirname, "../../uploads");
+
 export const bannersUploadDir = path.join(uploadsRoot, "banners");
 
-if (!existsSync(bannersUploadDir)) {
-  mkdirSync(bannersUploadDir, { recursive: true });
+function ensureDir(dir: string) {
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
 }
 
 const storage = multer.diskStorage({
   destination: (_request, _file, callback) => {
-    callback(null, bannersUploadDir);
+    try {
+      ensureDir(bannersUploadDir);
+      callback(null, bannersUploadDir);
+    } catch (error) {
+      callback(error as Error, bannersUploadDir);
+    }
   },
   filename: (_request, file, callback) => {
     const extension = path.extname(file.originalname).toLowerCase() || ".jpg";
