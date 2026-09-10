@@ -17,6 +17,34 @@ import type {
   SortKey,
 } from "../types/directory";
 
+const FAVORITES_KEY = "buzaao-favorites";
+
+function readFavoriteIds(): string[] {
+  try {
+    const raw = localStorage.getItem(FAVORITES_KEY);
+    const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeFavoriteIds(ids: string[]) {
+  try {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(ids));
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function withFavoriteFlags(listings: Listing[]): Listing[] {
+  const favorites = new Set(readFavoriteIds());
+  return listings.map((listing) => ({
+    ...listing,
+    important: listing.important || favorites.has(listing.id),
+  }));
+}
+
 type DirectoryState = {
   listings: Listing[];
   cities: City[];
@@ -46,6 +74,7 @@ type DirectoryContextValue = DirectoryState & {
   cityName: (id: string) => string;
   natureName: (id: string) => string;
   categoryName: (id: string) => string;
+  toggleImportant: (id: string) => void;
   addListing: (listing: Omit<Listing, "id" | "status" | "important" | "tags">) => void;
   setListingStatus: (id: string, status: ListingStatus) => void;
   updateListing: (listing: Listing) => void;
@@ -63,7 +92,7 @@ type DirectoryContextValue = DirectoryState & {
 const DirectoryContext = createContext<DirectoryContextValue | null>(null);
 
 export function DirectoryProvider({ children }: { children: ReactNode }) {
-  const [listings, setListings] = useState(seedListings);
+  const [listings, setListings] = useState(() => withFavoriteFlags(seedListings));
   const [cities, setCities] = useState(seedCities);
   const [natures, setNatures] = useState(seedNatures);
   const [categories, setCategories] = useState(seedCategories);
@@ -86,6 +115,7 @@ export function DirectoryProvider({ children }: { children: ReactNode }) {
     setNatureId("");
     setCategoryId("");
     setSearch("");
+    setTab("all");
   };
 
   const visibleListings = useMemo(() => {
@@ -125,8 +155,8 @@ export function DirectoryProvider({ children }: { children: ReactNode }) {
   }, [listings, search, cityId, natureId, categoryId, tab, sortKey, cities, natures, categories]);
 
   const importantListings = useMemo(
-    () => visibleListings.filter((listing) => listing.important),
-    [visibleListings],
+    () => listings.filter((listing) => listing.status === "approved" && listing.important).slice(0, 12),
+    [listings],
   );
 
   const activeBanner = useMemo(() => {
@@ -160,6 +190,15 @@ export function DirectoryProvider({ children }: { children: ReactNode }) {
     cityName,
     natureName,
     categoryName,
+    toggleImportant: (id) => {
+      setListings((current) => {
+        const next = current.map((listing) =>
+          listing.id === id ? { ...listing, important: !listing.important } : listing,
+        );
+        writeFavoriteIds(next.filter((listing) => listing.important).map((listing) => listing.id));
+        return next;
+      });
+    },
     addListing: (input) => {
       setListings((current) => [
         {
@@ -179,7 +218,11 @@ export function DirectoryProvider({ children }: { children: ReactNode }) {
       setListings((current) => current.map((listing) => (listing.id === next.id ? next : listing)));
     },
     removeListing: (id) => {
-      setListings((current) => current.filter((listing) => listing.id !== id));
+      setListings((current) => {
+        const next = current.filter((listing) => listing.id !== id);
+        writeFavoriteIds(next.filter((listing) => listing.important).map((listing) => listing.id));
+        return next;
+      });
     },
     addCategory: (name) => {
       setCategories((current) => [...current, { id: crypto.randomUUID(), name }]);

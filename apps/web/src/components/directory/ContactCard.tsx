@@ -1,6 +1,7 @@
-import { Briefcase, MapPin, Phone } from "lucide-react";
+import { Briefcase, MapPin, Phone, Star } from "lucide-react";
 import { getInitials } from "../../lib/cn";
 import type { Listing } from "../../types/directory";
+import { useDirectory } from "../../state/directory-context";
 import { WhatsAppIcon } from "../icons";
 
 type ContactCardProps = {
@@ -11,6 +12,7 @@ type ContactCardProps = {
 };
 
 export function ContactCard({ listing, city, nature, category }: ContactCardProps) {
+  const { toggleImportant } = useDirectory();
   const company = listing.company || listing.name;
   const person = listing.company ? listing.name : null;
 
@@ -30,7 +32,22 @@ export function ContactCard({ listing, city, nature, category }: ContactCardProp
         )}
 
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-[15px] font-bold text-ink sm:text-base">{company}</h3>
+          <div className="flex items-start gap-2">
+            <h3 className="min-w-0 flex-1 truncate text-[15px] font-bold text-ink sm:text-base">{company}</h3>
+            <button
+              type="button"
+              onClick={() => toggleImportant(listing.id)}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-page"
+              aria-label={listing.important ? "Remove from favourites" : "Mark as important"}
+              title={listing.important ? "Remove from favourites" : "Mark as important"}
+            >
+              <Star
+                className={
+                  listing.important ? "h-4 w-4 fill-amber-400 text-amber-400" : "h-4 w-4 text-muted"
+                }
+              />
+            </button>
+          </div>
           {person ? <p className="truncate text-sm text-muted">{person}</p> : null}
           <span className="mt-1.5 inline-block max-w-full truncate rounded-lg bg-page px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted">
             {category}

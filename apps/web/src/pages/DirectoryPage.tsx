@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { CategoryBanner } from "../components/directory/CategoryBanner";
 import { ContactCard } from "../components/directory/ContactCard";
 import { FilterBar } from "../components/directory/FilterBar";
+import { ImportantClients } from "../components/directory/ImportantClients";
 import { ThemedSelect, findSelectOption, type SelectOption } from "../components/ui/ThemedSelect";
 import { useDirectory } from "../state/directory-context";
 
@@ -19,6 +20,7 @@ export function DirectoryPage() {
     sortKey,
     setSortKey,
     activeFilterCount,
+    tab,
   } = useDirectory();
 
   const sortValue = useMemo(() => findSelectOption(SORT_OPTIONS, sortKey), [sortKey]);
@@ -27,11 +29,14 @@ export function DirectoryPage() {
     <div className="min-w-0 space-y-3 sm:space-y-5">
       <FilterBar />
       <CategoryBanner />
+      <ImportantClients />
 
       <section className="min-w-0">
         <div className="mb-2.5 flex items-center justify-between gap-2 sm:mb-3">
           <div className="min-w-0">
-            <h2 className="text-base font-bold sm:text-lg">Directory</h2>
+            <h2 className="text-base font-bold sm:text-lg">
+              {tab === "important" ? "Favourites" : "Directory"}
+            </h2>
             <p className="text-xs text-muted sm:text-sm">
               {visibleListings.length} listing{visibleListings.length === 1 ? "" : "s"}
               {activeFilterCount > 0 ? " found" : ""}
@@ -53,7 +58,11 @@ export function DirectoryPage() {
         {visibleListings.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-line bg-white px-6 py-12 text-center sm:py-14">
             <p className="text-lg font-semibold">No listings found</p>
-            <p className="mt-1 text-sm text-muted">Try changing filters or search.</p>
+            <p className="mt-1 text-sm text-muted">
+              {tab === "important"
+                ? "Mark listings with the star to add favourites."
+                : "Try changing filters or search."}
+            </p>
           </div>
         ) : (
           <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">

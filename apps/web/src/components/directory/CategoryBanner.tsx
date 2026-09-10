@@ -3,9 +3,18 @@ import { useQuery } from "@tanstack/react-query";
 import { adminApi, mediaUrl, type AdminBanner } from "../../lib/api";
 import { useDirectory } from "../../state/directory-context";
 
-const LOCAL_DEFAULT_IMAGE = "/default-banner.svg";
+/** Always available on the web app — shown when no city/category banner matches. */
+const DEFAULT_BANNER_IMAGE = "/default-banner.svg";
 
-function pickBanner(banners: AdminBanner[], cityId: string, categoryId: string): AdminBanner | null {
+function pickTargetedBanner(
+  banners: AdminBanner[],
+  cityId: string,
+  categoryId: string,
+): AdminBanner | null {
+  if (!cityId && !categoryId) {
+    return null;
+  }
+
   if (cityId && categoryId) {
     const both = banners.find(
       (banner) => banner.categoryIds.includes(categoryId) && banner.cityIds.includes(cityId),
@@ -29,13 +38,7 @@ function pickBanner(banners: AdminBanner[], cityId: string, categoryId: string):
     }
   }
 
-  const defaults = banners.filter(
-    (banner) => banner.categoryIds.length === 0 && banner.cityIds.length === 0,
-  );
-  return (
-    defaults.find((banner) => !/seed-(default|ext|amd|alm-del)\.png$/i.test(banner.imageUrl)) ??
-    null
-  );
+  return null;
 }
 
 export function CategoryBanner() {
@@ -45,14 +48,15 @@ export function CategoryBanner() {
     queryFn: adminApi.getBanners,
   });
 
-  const activeBanner = useMemo(
-    () => pickBanner(bannersQuery.data ?? [], cityId, categoryId),
+  const targeted = useMemo(
+    () => pickTargetedBanner(bannersQuery.data ?? [], cityId, categoryId),
     [bannersQuery.data, cityId, categoryId],
   );
 
-  const imageSrc = activeBanner ? mediaUrl(activeBanner.imageUrl) : LOCAL_DEFAULT_IMAGE;
+  // Default banner always comes from the web app; targeted banners come from admin uploads
+  const imageSrc = targeted ? mediaUrl(targeted.imageUrl) : DEFAULT_BANNER_IMAGE;
 
-  if (bannersQuery.isLoading) {
+  if (bannersQuery.isLoading && (cityId || categoryId)) {
     return (
       <div className="relative aspect-[3/1] min-h-28 animate-pulse overflow-hidden rounded-xl bg-white sm:min-h-36 sm:rounded-2xl" />
     );
@@ -62,8 +66,11 @@ export function CategoryBanner() {
     <section className="relative aspect-[3/1] min-h-28 min-w-0 overflow-hidden rounded-xl bg-brand sm:min-h-36 sm:rounded-2xl">
       <img
         src={imageSrc}
-        alt="Promotional banner"
+        alt="Buzaao directory banner"
         className="absolute inset-0 h-full w-full object-cover object-center"
+        onError={(event) => {
+          event.currentTarget.src = DEFAULT_BANNER_IMAGE;
+        }}
       />
     </section>
   );
