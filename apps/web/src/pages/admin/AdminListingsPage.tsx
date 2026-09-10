@@ -333,39 +333,40 @@ function ListingDetailDrawer({
 
         <div className="border-t border-line bg-white p-4">
           <div className="grid grid-cols-2 gap-2.5">
-            {listing.status !== "approved" ? (
+            {listing.status === "pending" ? (
+              <>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={onApprove}
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                >
+                  <Check className="h-4 w-4" />
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={onReject}
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-red-600 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
+                >
+                  <X className="h-4 w-4" />
+                  Reject
+                </button>
+              </>
+            ) : null}
+
+            {listing.status === "rejected" ? (
               <button
                 type="button"
                 disabled={busy}
                 onClick={onApprove}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                className="col-span-2 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
               >
                 <Check className="h-4 w-4" />
                 Approve
               </button>
-            ) : (
-              <div className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 text-sm font-semibold text-emerald-700">
-                <Check className="h-4 w-4" />
-                Approved
-              </div>
-            )}
-
-            {listing.status !== "rejected" ? (
-              <button
-                type="button"
-                disabled={busy}
-                onClick={onReject}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-red-600 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
-              >
-                <X className="h-4 w-4" />
-                Reject
-              </button>
-            ) : (
-              <div className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 text-sm font-semibold text-red-700">
-                <X className="h-4 w-4" />
-                Rejected
-              </div>
-            )}
+            ) : null}
 
             <button
               type="button"
