@@ -86,50 +86,10 @@ export function AddListingPage() {
       <form className="grid gap-5 p-5 sm:gap-6 sm:p-8" onSubmit={handleSubmit}>
         <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
           <FormSection
-            title="Contact details"
-            description="How people can reach you"
-            icon={<User className="h-4 w-4" />}
+            title="Classification"
+            description="Used for directory filters"
+            icon={<Tag className="h-4 w-4" />}
           >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Contact person" name="name" required placeholder="Your full name" />
-              <Field
-                label="Phone"
-                name="phone"
-                required
-                placeholder="9876543210"
-                icon={<Phone className="h-4 w-4" />}
-              />
-            </div>
-            <Field
-              label="Email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              icon={<Mail className="h-4 w-4" />}
-            />
-          </FormSection>
-
-          <FormSection
-            title="Business details"
-            description="Tell us about your company"
-            icon={<Building2 className="h-4 w-4" />}
-          >
-            <Field label="Company / Business name" name="company" placeholder="Business name" />
-            <Field
-              label="Service / Offering"
-              name="service"
-              required
-              placeholder="e.g. Fire extinguisher manufacturing"
-            />
-          </FormSection>
-        </div>
-
-        <FormSection
-          title="Classification"
-          description="Used for directory filters"
-          icon={<Tag className="h-4 w-4" />}
-        >
-          <div className="grid gap-3 md:grid-cols-3">
             <label className="grid gap-1.5 text-sm font-medium">
               <span className="inline-flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5 text-muted" />
@@ -177,7 +137,45 @@ export function AddListingPage() {
                 isClearable={false}
               />
             </label>
+          </FormSection>
+
+          <FormSection
+            title="Business details"
+            description="Tell us about your company"
+            icon={<Building2 className="h-4 w-4" />}
+          >
+            <Field label="Company / Business name" name="company" placeholder="Business name" />
+            <Field
+              label="Service / Offering"
+              name="service"
+              required
+              placeholder="e.g. Fire extinguisher manufacturing"
+            />
+          </FormSection>
+        </div>
+
+        <FormSection
+          title="Contact details"
+          description="How people can reach you"
+          icon={<User className="h-4 w-4" />}
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Contact person" name="name" required placeholder="Your full name" />
+            <Field
+              label="Phone"
+              name="phone"
+              required
+              placeholder="9876543210"
+              icon={<Phone className="h-4 w-4" />}
+            />
           </div>
+          <Field
+            label="Email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            icon={<Mail className="h-4 w-4" />}
+          />
         </FormSection>
 
         {error ? <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-600">{error}</p> : null}

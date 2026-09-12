@@ -1,4 +1,4 @@
-import { Briefcase, MapPin, Phone, Star } from "lucide-react";
+import { Briefcase, Mail, MapPin, Phone, Star } from "lucide-react";
 import { getInitials } from "../../lib/cn";
 import type { Listing } from "../../types/directory";
 import { useDirectory } from "../../state/directory-context";
@@ -15,6 +15,7 @@ export function ContactCard({ listing, city, nature, category }: ContactCardProp
   const { toggleImportant } = useDirectory();
   const company = listing.company || listing.name;
   const person = listing.company ? listing.name : null;
+  const email = listing.email?.trim();
 
   return (
     <article className="w-full max-w-full min-w-0 overflow-hidden rounded-2xl bg-white p-3.5 shadow-sm ring-1 ring-line sm:p-5">
@@ -72,23 +73,40 @@ export function ContactCard({ listing, city, nature, category }: ContactCardProp
         </span>
       </div>
 
-      <div className="mt-4 grid min-w-0 grid-cols-2 gap-2">
+      <div className="mt-4 grid min-w-0 grid-cols-3 gap-2">
         <a
           href={`tel:${listing.phone}`}
-          className="inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-xl bg-brand px-2 text-sm font-semibold text-white hover:bg-brand-dark"
+          className="inline-flex h-11 min-w-0 items-center justify-center gap-1 rounded-xl bg-brand px-1.5 text-sm font-semibold text-white hover:bg-brand-dark"
         >
           <Phone className="h-4 w-4 shrink-0" />
-          Call
+          <span className="truncate">Call</span>
         </a>
         <a
           href={`https://wa.me/91${listing.phone}`}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-line bg-white px-2 text-sm font-semibold text-ink hover:bg-page"
+          className="inline-flex h-11 min-w-0 items-center justify-center gap-1 rounded-xl border border-line bg-white px-1.5 text-sm font-semibold text-ink hover:bg-page"
         >
           <WhatsAppIcon className="h-4 w-4 shrink-0 text-[#25D366]" />
           <span className="truncate">WhatsApp</span>
         </a>
+        {email ? (
+          <a
+            href={`mailto:${email}`}
+            className="inline-flex h-11 min-w-0 items-center justify-center gap-1 rounded-xl border border-line bg-white px-1.5 text-sm font-semibold text-ink hover:bg-page"
+          >
+            <Mail className="h-4 w-4 shrink-0" />
+            <span className="truncate">Email</span>
+          </a>
+        ) : (
+          <span
+            className="inline-flex h-11 min-w-0 cursor-not-allowed items-center justify-center gap-1 rounded-xl border border-line bg-page px-1.5 text-sm font-semibold text-muted opacity-60"
+            title="Email not available"
+          >
+            <Mail className="h-4 w-4 shrink-0" />
+            <span className="truncate">Email</span>
+          </span>
+        )}
       </div>
     </article>
   );

@@ -1,4 +1,4 @@
-import { Phone, Star } from "lucide-react";
+import { Mail, Phone, Star } from "lucide-react";
 import { getInitials } from "../../lib/cn";
 import { useDirectory } from "../../state/directory-context";
 import { WhatsAppIcon } from "../icons";
@@ -29,11 +29,12 @@ export function ImportantClients() {
       <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
         {importantListings.map((listing) => {
           const title = listing.company || listing.name;
+          const email = listing.email?.trim();
 
           return (
             <article
               key={listing.id}
-              className="w-[168px] shrink-0 rounded-2xl border border-line bg-white p-3 shadow-sm"
+              className="w-[176px] shrink-0 rounded-2xl border border-line bg-white p-3 shadow-sm"
             >
               <div className="flex items-start justify-between gap-2">
                 {listing.photo ? (
@@ -54,7 +55,7 @@ export function ImportantClients() {
               </div>
               <p className="mt-2 truncate text-sm font-semibold text-ink">{title}</p>
               <p className="truncate text-xs text-muted">{listing.phone}</p>
-              <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+              <div className="mt-2.5 grid grid-cols-3 gap-1.5">
                 <a
                   href={`tel:${listing.phone}`}
                   className="inline-flex h-8 items-center justify-center rounded-lg bg-brand text-xs font-semibold text-white"
@@ -71,6 +72,22 @@ export function ImportantClients() {
                 >
                   <WhatsAppIcon className="h-3.5 w-3.5 text-[#25D366]" />
                 </a>
+                {email ? (
+                  <a
+                    href={`mailto:${email}`}
+                    className="inline-flex h-8 items-center justify-center rounded-lg border border-line bg-page text-xs font-semibold text-ink"
+                    aria-label={`Email ${title}`}
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                  </a>
+                ) : (
+                  <span
+                    className="inline-flex h-8 cursor-not-allowed items-center justify-center rounded-lg border border-line bg-page text-muted opacity-50"
+                    title="Email not available"
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                  </span>
+                )}
               </div>
             </article>
           );
